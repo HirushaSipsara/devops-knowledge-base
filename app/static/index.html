@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevOps Knowledge Base</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg:        #0d1117;
+    --surface:   #12161d;
+    --surface2:  #161b22;
+    --border:    #232a35;
+    --border2:   #2d3542;
+    --text:      #d5d9e0;
+    --muted:     #6b7280;
+    --dim:       #4b5563;
+    --amber:     #e3a008;
+    --amber-dim: rgba(227,160,8,0.12);
+    --teal:      #2dd4bf;
+    --teal-dim:  rgba(45,212,191,0.12);
+    --red:       #f85149;
+    --red-dim:   rgba(248,81,73,0.12);
+    --green:     #3fb950;
+    --green-dim: rgba(63,185,80,0.12);
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    height: 100%;
+  }
+
+  ::selection { background: var(--amber-dim); }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--dim); }
+
+  button {
+    font-family: var(--sans);
+    cursor: pointer;
+    border: none;
+    background: none;
+  }
+
+  input, textarea, select {
+    font-family: var(--mono);
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 3px;
+    font-size: 13px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.15s;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--amber);
+  }
+
+  /* ── LAYOUT ── */
+  .app {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    height: 100vh;
+  }
+
+  @media (max-width: 780px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 20px 20px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .brand-dot {
+    width: 8px; height: 8px;
+    background: var(--amber);
+    border-radius: 50%;
+    flex-shrink: 0;
+    animation: pulse 2.4s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(227,160,8,0.4); }
+    50% { opacity: 0.6; box-shadow: 0 0 0 4px rgba(227,160,8,0); }
+  }
+
+  .brand-text {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .brand-text span { color: var(--amber); }
+
+  .sidebar-section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding: 16px 20px 8px;
+  }
+
+  .cat-list { display: flex; flex-direction: column; gap: 1px; padding: 0 10px; }
+
+  .cat-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--muted);
+    transition: background 0.12s, color 0.12s;
+    cursor: pointer;
+  }
+
+  .cat-item:hover { background: var(--surface2); color: var(--text); }
+
+  .cat-item.active {
+    background: var(--amber-dim);
+    color: var(--amber);
+  }
+
+  .cat-count {
+    font-size: 10px;
+    color: var(--dim);
+    background: var(--bg);
+    padding: 1px 6px;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+  }
+
+  .cat-item.active .cat-count { color: var(--amber); border-color: rgba(227,160,8,0.3); }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .health-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .health-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--dim);
+    flex-shrink: 0;
+    transition: background 0.3s;
+  }
+
+  .health-dot.ok { background: var(--green); box-shadow: 0 0 6px rgba(63,185,80,0.5); }
+  .health-dot.err { background: var(--red); box-shadow: 0 0 6px rgba(248,81,73,0.5); }
+
+  /* ── MAIN ── */
+  .main {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .search-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    padding: 8px 14px;
+    transition: border-color 0.15s;
+  }
+
+  .search-wrap:focus-within { border-color: var(--amber); }
+
+  .search-prompt { color: var(--amber); font-family: var(--mono); font-size: 13px; flex-shrink: 0; }
+
+  .search-wrap input {
+    border: none;
+    padding: 0;
+    background: none;
+  }
+
+  .btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 9px 16px;
+    border-radius: 3px;
+    letter-spacing: 0.02em;
+    transition: opacity 0.15s, transform 0.1s;
+    white-space: nowrap;
+  }
+
+  .btn:active { transform: scale(0.97); }
+  .btn:hover { opacity: 0.85; }
+
+  .btn-primary { background: var(--amber); color: #1a1300; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border2); color: var(--muted); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--dim); }
+  .btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+
+  /* ── CONTENT ── */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+  }
+
+  .content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 20px;
+  }
+
+  .content-title {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .content-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+  }
+
+  /* ── FORM PANEL ── */
+  .form-panel {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    animation: slideDown 0.2s ease;
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .form-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 18px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .form-panel-body {
+    padding: 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .form-field { display: flex; flex-direction: column; gap: 6px; }
+  .form-field.full { grid-column: 1 / -1; }
+
+  .form-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  .form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 4px;
+  }
+
+  /* ── SNIPPET GRID ── */
+  .snippet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 14px;
+  }
+
+  .snippet-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: border-color 0.15s, transform 0.1s;
+    animation: fadeIn 0.3s ease both;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .snippet-card:hover {
+    border-color: var(--border2);
+  }
+
+  .snippet-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tb-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .snippet-title {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .snippet-cat-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--teal);
+    background: var(--teal-dim);
+    padding: 2px 7px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .snippet-command-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: #090c10;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cmd-prompt { color: var(--green); font-family: var(--mono); font-size: 12.5px; flex-shrink: 0; user-select: none; }
+
+  .cmd-text {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: #e6e1d3;
+    flex: 1;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .copy-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    padding: 3px 8px;
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    flex-shrink: 0;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .copy-btn:hover { color: var(--amber); border-color: var(--amber); }
+  .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+  .snippet-body {
+    padding: 12px 14px;
+  }
+
+  .snippet-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+
+  .snippet-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .tag-row { display: flex; gap: 5px; flex-wrap: wrap; }
+
+  .tag-chip {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--dim);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 2px 7px;
+    border-radius: 8px;
+  }
+
+  .snippet-actions { display: flex; gap: 6px; }
+
+  .icon-btn {
+    font-size: 12px;
+    color: var(--dim);
+    padding: 3px 6px;
+    border-radius: 3px;
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .icon-btn:hover { color: var(--text); background: var(--surface2); }
+  .icon-btn.delete:hover { color: var(--red); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--dim);
+  }
+
+  .empty-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-text { font-family: var(--mono); font-size: 13px; margin-bottom: 4px; }
+  .empty-sub { font-size: 12px; color: var(--dim); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-left: 3px solid var(--green);
+    padding: 12px 18px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    transform: translateY(20px);
+    opacity: 0;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+    z-index: 100;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.error { border-left-color: var(--red); }
+
+  /* ── LOADING ── */
+  .loading-row {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--dim);
+    padding: 40px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <div class="brand-text">devops<span>_</span>kb</div>
+    </div>
+
+    <div class="sidebar-section-label">Categories</div>
+    <div class="cat-list" id="catList">
+      <div class="cat-item active" data-category="" onclick="selectCategory('', this)">
+        <span>all snippets</span>
+        <span class="cat-count" id="countAll">0</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="health-pill">
+        <div class="health-dot" id="healthDot"></div>
+        <span id="healthText">checking...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="search-wrap">
+        <span class="search-prompt">$</span>
+        <input id="searchInput" type="text" placeholder="search commands, tags, descriptions..." oninput="handleSearch()">
+      </div>
+      <button class="btn btn-ghost" onclick="toggleCategoryForm()">+ category</button>
+      <button class="btn btn-primary" onclick="toggleSnippetForm()">+ new snippet</button>
+    </div>
+
+    <div class="content">
+
+      <!-- New Category Form -->
+      <div class="form-panel" id="categoryForm" style="display:none;">
+        <div class="form-panel-header">
+          <span>new category</span>
+          <span onclick="toggleCategoryForm()" style="cursor:pointer;">✕</span>
+        </div>
+        <div class="form-panel-body">
+          <div class="form-field">
+            <span class="form-label">Name</span>
+            <input id="catName" type="text" placeholder="e.g. Kubernetes">
+          </div>
+          <div class="form-field">
+            <span class="form-label">Description</span>
+            <input id="catDesc" type="text" placeholder="short description">
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-ghost" onclick="toggleCategoryForm()">cancel</button>
+            <button class="btn btn-primary" onclick="submitCategory()">save category</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- New/Edit Snippet Form -->
+      <div class="form-panel" id="snippetForm" style="display:none;">
+        <div class="form-panel-header">
+          <span id="snippetFormTitle">new snippet</span>
+          <span onclick="toggleSnippetForm()" style="cursor:pointer;">✕</span>
+        </div>
+        <div class="form-panel-body">
+          <input type="hidden" id="snippetEditId">
+          <div class="form-field full">
+            <span class="form-label">Title</span>
+            <input id="snipTitle" type="text" placeholder="e.g. Build a Docker image">
+          </div>
+          <div class="form-field">
+            <span class="form-label">Category</span>
+            <select id="snipCategory"></select>
+          </div>
+          <div class="form-field">
+            <span class="form-label">Tags (comma separated)</span>
+            <input id="snipTags" type="text" placeholder="docker, build, image">
+          </div>
+          <div class="form-field full">
+            <span class="form-label">Command</span>
+            <textarea id="snipCommand" rows="2" placeholder="docker build -t myapp:latest ."></textarea>
+          </div>
+          <div class="form-field full">
+            <span class="form-label">Description</span>
+            <textarea id="snipDesc" rows="2" placeholder="what this command does"></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-ghost" onclick="toggleSnippetForm()">cancel</button>
+            <button class="btn btn-primary" onclick="submitSnippet()">save snippet</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-header">
+        <span class="content-title" id="contentTitle">all snippets</span>
+        <span class="content-count" id="contentCount"></span>
+      </div>
+
+      <div id="snippetContainer">
+        <div class="loading-row">loading snippets...</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = '';  // same-origin — served by FastAPI
+  let allCategories = [];
+  let allSnippets = [];
+  let activeCategory = '';
+  let editingSnippetId = null;
+
+  const dotColors = ['#e3a008', '#2dd4bf', '#f85149', '#3fb950', '#a78bfa', '#60a5fa'];
+  function colorFor(id) { return dotColors[id % dotColors.length]; }
+
+  // ── Init ──────────────────────────────────────────────────────────
+  async function init() {
+    await checkHealth();
+    await loadCategories();
+    await loadSnippets();
+  }
+
+  async function checkHealth() {
+    const dot = document.getElementById('healthDot');
+    const text = document.getElementById('healthText');
+    try {
+      const res = await fetch(`${API}/health`);
+      const data = await res.json();
+      if (data.status === 'healthy' && data.database === 'connected') {
+        dot.className = 'health-dot ok';
+        text.textContent = `db connected · ${data.latency_ms}ms`;
+      } else {
+        dot.className = 'health-dot err';
+        text.textContent = 'db issue';
+      }
+    } catch (e) {
+      dot.className = 'health-dot err';
+      text.textContent = 'api unreachable';
+    }
+  }
+
+  // ── Categories ────────────────────────────────────────────────────
+  async function loadCategories() {
+    try {
+      const res = await fetch(`${API}/categories`);
+      allCategories = await res.json();
+      renderCategorySidebar();
+      renderCategorySelect();
+    } catch (e) {
+      showToast('Failed to load categories', true);
+    }
+  }
+
+  function renderCategorySidebar() {
+    const list = document.getElementById('catList');
+    const allItem = list.querySelector('[data-category=""]');
+    list.innerHTML = '';
+    list.appendChild(allItem);
+
+    allCategories.forEach(cat => {
+      const count = allSnippets.filter(s => s.category_id === cat.id).length;
+      const item = document.createElement('div');
+      item.className = 'cat-item' + (activeCategory === cat.name ? ' active' : '');
+      item.dataset.category = cat.name;
+      item.onclick = () => selectCategory(cat.name, item);
+      item.innerHTML = `<span>${escapeHtml(cat.name.toLowerCase())}</span><span class="cat-count">${count}</span>`;
+      list.appendChild(item);
+    });
+
+    document.getElementById('countAll').textContent = allSnippets.length;
+  }
+
+  function renderCategorySelect() {
+    const select = document.getElementById('snipCategory');
+    select.innerHTML = allCategories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  }
+
+  function selectCategory(name, el) {
+    activeCategory = name;
+    document.querySelectorAll('.cat-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('contentTitle').textContent = name ? name.toLowerCase() : 'all snippets';
+    renderSnippets();
+  }
+
+  async function toggleCategoryForm() {
+    const panel = document.getElementById('categoryForm');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  }
+
+  async function submitCategory() {
+    const name = document.getElementById('catName').value.trim();
+    const description = document.getElementById('catDesc').value.trim();
+    if (!name) { showToast('Category name is required', true); return; }
+
+    try {
+      const res = await fetch(`${API}/categories`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description })
+      });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.detail); }
+      document.getElementById('catName').value = '';
+      document.getElementById('catDesc').value = '';
+      toggleCategoryForm();
+      await loadCategories();
+      showToast('Category created');
+    } catch (e) {
+      showToast(e.message || 'Failed to create category', true);
+    }
+  }
+
+  // ── Snippets ──────────────────────────────────────────────────────
+  async function loadSnippets() {
+    try {
+      const res = await fetch(`${API}/snippets`);
+      allSnippets = await res.json();
+      renderCategorySidebar();
+      renderSnippets();
+    } catch (e) {
+      document.getElementById('snippetContainer').innerHTML =
+        `<div class="empty-state"><div class="empty-icon">⚠</div><div class="empty-text">could not reach the API</div><div class="empty-sub">check that the backend is running</div></div>`;
+    }
+  }
+
+  function renderSnippets() {
+    const container = document.getElementById('snippetContainer');
+    const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+
+    let filtered = allSnippets;
+    if (activeCategory) filtered = filtered.filter(s => s.category_name === activeCategory);
+    if (searchTerm) {
+      filtered = filtered.filter(s =>
+        s.title.toLowerCase().includes(searchTerm) ||
+        s.command.toLowerCase().includes(searchTerm) ||
+        (s.description || '').toLowerCase().includes(searchTerm) ||
+        (s.tags || []).some(t => t.toLowerCase().includes(searchTerm))
+      );
+    }
+
+    document.getElementById('contentCount').textContent = `${filtered.length} snippet${filtered.length !== 1 ? 's' : ''}`;
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<div class="empty-state">
+        <div class="empty-icon">∅</div>
+        <div class="empty-text">no snippets found</div>
+        <div class="empty-sub">try a different search or category, or add a new one</div>
+      </div>`;
+      return;
+    }
+
+    container.innerHTML = `<div class="snippet-grid">${filtered.map(renderCard).join('')}</div>`;
+  }
+
+  function renderCard(s) {
+    const dotColor = colorFor(s.category_id);
+    const tags = (s.tags || []).map(t => `<span class="tag-chip">${escapeHtml(t)}</span>`).join('');
+    return `
+      <div class="snippet-card">
+        <div class="snippet-titlebar">
+          <div class="tb-dot" style="background:${dotColor};"></div>
+          <span class="snippet-title">${escapeHtml(s.title)}</span>
+          <span class="snippet-cat-badge">${escapeHtml((s.category_name || '').toLowerCase())}</span>
+        </div>
+        <div class="snippet-command-row">
+          <span class="cmd-prompt">$</span>
+          <span class="cmd-text" id="cmd-${s.id}">${escapeHtml(s.command)}</span>
+          <button class="copy-btn" onclick="copyCommand(${s.id}, this)">copy</button>
+        </div>
+        <div class="snippet-body">
+          <div class="snippet-desc">${escapeHtml(s.description || 'No description provided.')}</div>
+          <div class="snippet-footer">
+            <div class="tag-row">${tags}</div>
+            <div class="snippet-actions">
+              <span class="icon-btn" onclick="editSnippet(${s.id})" title="edit">✎</span>
+              <span class="icon-btn delete" onclick="deleteSnippet(${s.id})" title="delete">🗑</span>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function copyCommand(id, btn) {
+    const text = document.getElementById(`cmd-${id}`).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const original = btn.textContent;
+      btn.textContent = 'copied';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1500);
+    });
+  }
+
+  function handleSearch() { renderSnippets(); }
+
+  function toggleSnippetForm(prefill) {
+    const panel = document.getElementById('snippetForm');
+    const isOpening = panel.style.display === 'none' || !panel.style.display;
+
+    if (!prefill) {
+      // Reset for "new snippet" unless we're populating for edit
+      editingSnippetId = null;
+      document.getElementById('snippetFormTitle').textContent = 'new snippet';
+      document.getElementById('snipTitle').value = '';
+      document.getElementById('snipTags').value = '';
+      document.getElementById('snipCommand').value = '';
+      document.getElementById('snipDesc').value = '';
+    }
+
+    panel.style.display = isOpening ? 'block' : 'none';
+    if (isOpening) document.getElementById('snipTitle').focus();
+  }
+
+  function editSnippet(id) {
+    const s = allSnippets.find(x => x.id === id);
+    if (!s) return;
+    editingSnippetId = id;
+    document.getElementById('snippetFormTitle').textContent = `editing #${id}`;
+    document.getElementById('snipTitle').value = s.title;
+    document.getElementById('snipCategory').value = s.category_id;
+    document.getElementById('snipTags').value = (s.tags || []).join(', ');
+    document.getElementById('snipCommand').value = s.command;
+    document.getElementById('snipDesc').value = s.description || '';
+    toggleSnippetForm(true);
+  }
+
+  async function submitSnippet() {
+    const title = document.getElementById('snipTitle').value.trim();
+    const command = document.getElementById('snipCommand').value.trim();
+    const category_id = parseInt(document.getElementById('snipCategory').value);
+    const description = document.getElementById('snipDesc').value.trim();
+    const tags = document.getElementById('snipTags').value.split(',').map(t => t.trim()).filter(Boolean);
+
+    if (!title || !command || !category_id) {
+      showToast('Title, command, and category are required', true);
+      return;
+    }
+
+    const payload = { title, command, category_id, description, tags };
+
+    try {
+      let res;
+      if (editingSnippetId) {
+        res = await fetch(`${API}/snippets/${editingSnippetId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        res = await fetch(`${API}/snippets`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+      if (!res.ok) { const err = await res.json(); throw new Error(err.detail); }
+      toggleSnippetForm();
+      await loadSnippets();
+      showToast(editingSnippetId ? 'Snippet updated' : 'Snippet created');
+    } catch (e) {
+      showToast(e.message || 'Failed to save snippet', true);
+    }
+  }
+
+  async function deleteSnippet(id) {
+    if (!confirm('Delete this snippet? This cannot be undone.')) return;
+    try {
+      const res = await fetch(`${API}/snippets/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Delete failed');
+      await loadSnippets();
+      showToast('Snippet deleted');
+    } catch (e) {
+      showToast('Failed to delete snippet', true);
+    }
+  }
+
+  // ── Utilities ─────────────────────────────────────────────────────
+  function showToast(message, isError) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => { toast.className = 'toast'; }, 2500);
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+  }
+
+  init();
+  setInterval(checkHealth, 30000);
+</script>
+
+</body>
+</html>
