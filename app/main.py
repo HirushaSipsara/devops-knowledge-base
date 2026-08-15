@@ -166,10 +166,17 @@ def search_snippets(
     ).all()
 
     # Also match tags (array contains search term, case-insensitive best-effort)
-    tag_matches = db.query(Snippet).filter(Snippet.tags.any(q.lower())).all()
-    for s in tag_matches:
-        if s not in results:
-            results.append(s)
+    try:
+        tag_matches = db.query(Snippet).filter(Snippet.tags.any(q.lower())).all()
+        for s in tag_matches:
+            if s not in results:
+                results.append(s)
+    except Exception:
+        # Fallback for SQLite / engines without .any() support
+        all_snippets = db.query(Snippet).all()
+        for s in all_snippets:
+            if s not in results and any(q.lower() in str(t).lower() for t in (s.tags or [])):
+                results.append(s)
 
     REQUEST_COUNT.labels(method="GET", endpoint="/snippets/search", status="200").inc()
     return [_to_snippet_response(s) for s in results]

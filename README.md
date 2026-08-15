@@ -46,10 +46,11 @@ A clean, production-ready CRUD web application for storing and managing DevOps c
 | Component / Layer | Status | Description |
 | ----------------- | :---: | ----------- |
 | **Web Application** | ✅ Complete | FastAPI REST API with CRUD and live search |
+| **Reverse Proxy** | ✅ Complete | Nginx Alpine reverse proxy with gzip & proxy headers |
 | **Database** | ✅ Complete | PostgreSQL database with SQLAlchemy ORM |
 | **Automated Tests** | ✅ Complete | pytest suite with in-memory SQLite isolation |
 | **Dockerization** | ✅ Complete | Optimized Python 3.11 slim Dockerfile |
-| **Docker Compose** | ✅ Complete | Multi-container setup (FastAPI + PostgreSQL) |
+| **Docker Compose** | ✅ Complete | Multi-container setup (Nginx + FastAPI + PostgreSQL) |
 | **GitHub Actions CI** | ✅ Complete | Automated testing & Docker image build on push/PR |
 | **Terraform IaC** | ✅ Complete | EC2 Container Host + Security Group provisioning |
 | **Terraform Remote State** | ✅ Complete | AWS S3 backend configuration + DynamoDB locking |
@@ -62,6 +63,7 @@ A clean, production-ready CRUD web application for storing and managing DevOps c
 
 | Layer | Technology |
 | ----- | ---------- |
+| **Reverse Proxy** | Nginx 1.27 Alpine |
 | **Application** | FastAPI + Python 3.11 |
 | **Database** | PostgreSQL 16+ |
 | **Frontend** | Vanilla HTML5 / CSS3 / Modern JavaScript (Served by FastAPI) |
@@ -76,15 +78,16 @@ A clean, production-ready CRUD web application for storing and managing DevOps c
 
 ## 🐳 Running with Docker & Docker Compose (Recommended)
 
-### 1. Run with Docker Compose (Full Stack: App + Database)
-To run both the FastAPI application and PostgreSQL database with a single command:
+### 1. Run with Docker Compose (Full Stack: Nginx + App + Database)
+To run the full stack (Nginx reverse proxy, FastAPI application, and PostgreSQL database) with a single command:
 
 ```bash
 docker compose up --build
 ```
-- Access the web app: [http://localhost:8000](http://localhost:8000)
-- Interactive Swagger API Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
-- Health Check: [http://localhost:8000/health](http://localhost:8000/health)
+- Access via Nginx (Port 80): [http://localhost](http://localhost)
+- Direct FastAPI App (Port 8000): [http://localhost:8000](http://localhost:8000)
+- Interactive Swagger API Docs: [http://localhost/docs](http://localhost/docs) (or [http://localhost:8000/docs](http://localhost:8000/docs))
+- Health Check: [http://localhost/health](http://localhost/health) (or [http://localhost:8000/health](http://localhost:8000/health))
 
 To stop the containers:
 ```bash
