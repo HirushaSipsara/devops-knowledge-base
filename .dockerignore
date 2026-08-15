@@ -1,0 +1,22 @@
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local environments
+.env
+.env.example
+venv/
+.venv/
+env/
+
+# Version control
+.git
+.gitignore
+
+# Testing and metadata
+.pytest_cache/
+.coverage
+htmlcov/
+.gitattributes

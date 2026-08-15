@@ -1,0 +1,13 @@
+# AWS Configuration
+aws_region   = "us-east-1"
+environment  = "dev"
+project_name = "devops-knowledge-base"
+
+# Compute Specs (Free Tier Eligible)
+instance_type = "t2.micro"
+
+# SSH Key Pair (optional - create in AWS EC2 Console before specifying)
+key_name = "my-aws-keypair"
+
+# Application Port
+app_port = 8000
