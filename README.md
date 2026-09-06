@@ -4,11 +4,11 @@
 > **Engineers:** Hirusha Sipsara & Shabeeha Miftha  
 > **Mentor:** Mr. Achintha Balasooriya · Senior DevOps Engineer, CMS (Pvt) Ltd  
 
-A clean, production-ready CRUD web application for storing and managing DevOps commands, tools, and snippets — built with FastAPI and PostgreSQL. While the application is intentionally lightweight and intuitive, the **DevOps Engineering Ecosystem** built around it (Docker, Docker Compose, GitHub Actions CI, and Terraform AWS Infrastructure with S3 Remote State) is the core highlight of this project.
+A containerized CRUD web application for storing and managing DevOps commands, tools, and snippets — built with FastAPI and PostgreSQL. The application is intentionally lightweight because the **DevOps engineering workflow** around it (Docker, Docker Compose, GitHub Actions CI/CD, and Terraform-managed AWS infrastructure with an S3 backend) is the core highlight of this project.
 
 ---
 
-## 🎯 50% Mid-Review Milestone Architecture
+## 🎯 Current Project Architecture
 
 ```text
                      Developer
@@ -53,9 +53,9 @@ A clean, production-ready CRUD web application for storing and managing DevOps c
 | **Docker Compose** | ✅ Complete | Multi-container setup (Nginx + FastAPI + PostgreSQL) |
 | **GitHub Actions CI** | ✅ Complete | Automated testing & Docker image build on push/PR |
 | **Terraform IaC** | ✅ Complete | EC2 Container Host + Security Group provisioning |
-| **Terraform Remote State** | ✅ Complete | AWS S3 backend configuration + DynamoDB locking |
-| **AWS Deployment Automation** | ⏳ Phase 2 | Automated CD deployment |
-| **AWS ECR / ECS** | ⏳ Phase 2 | Production container orchestration |
+| **Terraform S3 Backend** | ⚠️ Configured | S3 backend and lockfile configuration are present; current AWS state access must be verified with configured AWS CLI credentials |
+| **AWS Deployment Automation** | ✅ Implemented | `Dev` pipeline tests the application and deploys it to the staging EC2 host through SSH |
+| **AWS ECR / ECS** | ⏭️ Future Scope | Not implemented; retained as an optional future container-orchestration phase |
 
 ---
 
@@ -105,11 +105,14 @@ docker run -d -p 8000:8000 --name devops-kb-app devops-knowledge-base
 
 ---
 
-## 🔄 GitHub Actions CI Pipeline
+## 🔄 GitHub Actions CI/CD Pipelines
 
-The project includes an automated continuous integration pipeline located at [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+The project contains two GitHub Actions workflows:
 
-### Pipeline Workflow:
+- [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs tests and verifies the Docker image on pushes and pull requests to `main` or `master`.
+- [`.github/workflows/staging-workflow.yml`](.github/workflows/staging-workflow.yml) runs tests and deploys successful pushes from the exact `Dev` branch to the staging EC2 host.
+
+### CI Pipeline Workflow:
 1. **Trigger**: Automatically runs on every `push` and `pull_request` to `main` / `master`.
 2. **Job 1: Unit & Integration Tests**:
    - Spawns a Python 3.11 environment.
@@ -118,6 +121,17 @@ The project includes an automated continuous integration pipeline located at [`.
 3. **Job 2: Docker Build & Verification**:
    - Executes after tests pass.
    - Sets up Docker Buildx and builds the container image to guarantee that the `Dockerfile` is always functional and deployable.
+
+### Staging Deployment Workflow:
+
+1. Runs the pytest suite with an isolated in-memory SQLite database.
+2. Connects to the configured EC2 host using GitHub Secrets and strict SSH known-host verification.
+3. Pulls the latest `Dev` branch on the server.
+4. Builds the Docker image on EC2.
+5. Stops and removes the previous `devops-kb-app` container.
+6. Starts the replacement container on the existing `devops-kb-network` Docker network.
+
+The latest verified staging workflow run completed successfully on **22 August 2026**. The deployed `/health` and `/metrics` endpoints were reachable during the Week 10 review on **6 September 2026**.
 
 ---
 
@@ -131,7 +145,7 @@ terraform/
 ├── main.tf                  # AWS Provider, VPC lookup, AMI data source
 ├── variables.tf             # Parameterized region, instance type, environment
 ├── ec2.tf                   # EC2 Instance & Security Group with Docker cloud-init
-├── backend.tf               # AWS S3 Remote State & DynamoDB state locking
+├── backend.tf               # AWS S3 remote state and S3 lockfile configuration
 ├── outputs.tf               # Public IP, DNS, and application URLs
 └── terraform.tfvars.example # Example variable definitions
 ```
@@ -170,8 +184,9 @@ terraform/
 
 ### 🗄️ AWS S3 Remote State Management
 Terraform state is configured for remote management in [`terraform/backend.tf`](terraform/backend.tf).
-- **Why Remote State?** Enables team collaboration, prevents concurrent state mutations (via DynamoDB locking), and keeps state files with sensitive metadata off developer machines and Git repositories.
-- Uncomment the `backend "s3"` block in `backend.tf` and provide your S3 bucket and region to switch from local state to AWS S3.
+- **Why Remote State?** It centralizes state for collaboration, uses an S3 lockfile to reduce concurrent state changes, and keeps state files with sensitive metadata out of Git.
+- The S3 backend block is already active and uses `use_lockfile = true`; this project does not use DynamoDB locking.
+- Before running `terraform plan` or applying changes, configure the AWS CLI, verify access with `aws sts get-caller-identity`, then run `terraform init`, `terraform state list`, and `terraform plan` to confirm the expected state and avoid creating duplicate resources.
 
 ---
 
@@ -223,7 +238,8 @@ pytest tests/ -v
 devops-knowledge-base/
 ├── .github/
 │   └── workflows/
-│       └── ci.yml               # GitHub Actions CI Workflow
+│       ├── ci.yml               # Main/master CI and Docker build verification
+│       └── staging-workflow.yml # Dev branch CI and EC2 deployment
 ├── app/
 │   ├── main.py                  # FastAPI application & API endpoints
 │   ├── models.py                # SQLAlchemy ORM models
